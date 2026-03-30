@@ -83,3 +83,20 @@ def run_forecast():
 
 if __name__ == "__main__":
     run_forecast()
+
+import matplotlib.animation as animation
+
+def save_as_gif(point_fc):
+    fig, ax = plt.subplots()
+    x = np.arange(HORIZON_LEN)
+    line, = ax.plot([], [], 'b-o')
+    ax.set_xlim(0, HORIZON_LEN)
+    ax.set_ylim(np.min(point_fc)-5, np.max(point_fc)+5)
+    
+    def animate(i):
+        line.set_data(x[:i], point_fc[0][:i])
+        return line,
+
+    ani = animation.FuncAnimation(fig, animate, frames=HORIZON_LEN, interval=100)
+    ani.save('scripts/humidity_prediction_output.gif', writer='pillow')
+    print("GIF saved in scripts folder!")
