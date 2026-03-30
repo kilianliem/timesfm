@@ -3,8 +3,11 @@ import os
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import timesfm
 from pathlib import Path
+import timesfm
+from timesfm import TimesFm  # Add this line explicitly
+
+# Remove the confusing "if TimesFm is None" check later in the code
 
 # Try to import TimesFM 2.5 components
 try:
@@ -38,19 +41,17 @@ def prepare_data(file_path):
     return humidity, temperature
 
 def run_forecast():
-    # Make sure this matches your filename exactly
-    CSV_FILE = "WeatherData_TG_Hourly_Jan_2026.csv" 
-    
-    if TimesFm is None:
-        return # Stop if the library failed to load
-        
-    humidity_df = prepare_data(CSV_FILE)
-    # ... rest of your model execution ...
-    
-    # Split into context (past) and horizon (future temperature we know)
-    # Note: To predict humidity, we use 'known' future temperatures
+    # 1. Properly assign the returned data from prepare_data
+    try:
+        humidity, temperature = prepare_data(CSV_FILE)
+    except FileNotFoundError as e:
+        print(e)
+        return
+
+    # 2. Now these variables exist for the next lines:
     ctx_humidity = humidity[-CONTEXT_LEN:]
-    ctx_temp = temperature[-(CONTEXT_LEN + HORIZON_LEN):] # Context + Horizon temps
+    # Note: Ensure indices don't go out of bounds
+    ctx_temp = temperature[-(CONTEXT_LEN + HORIZON_LEN):]
     
     print(f"Data Loaded. Context: {len(ctx_humidity)} hours. Predicting: {HORIZON_LEN} hours.")
 
@@ -62,11 +63,21 @@ def run_forecast():
         horizon_len=HORIZON_LEN,
         context_len=CONTEXT_LEN
     )
-    
-    # In version 2.5, we use Checkpoint and Hparams separately
-    ckpt = timesfm.TimesFmCheckpoint(huggingface_repo_id=MODEL_ID)
-    model = timesfm.TimesFm(hparams=hparams, checkpoint=ckpt)
 
+    # TimesFM expects (batch_size, context_len)
+    inputs = [ctx_humidity] 
+    
+    # Covariates must match the expected format for version 2.5
+    dynamic_covariates = {
+        "temperature": np.array([ctx_temp]) # Wrap in np.array for consistent shaping
+    }
+
+    point_fc, quant_fc = model.forecast_with_covariates(
+        inputs=inputs,
+        dynamic_numerical_covariates=dynamic_covariates,
+        xreg_mode="timesfm + xreg"
+    )
+    
     # 3. Forecast with Temperature as a Covariate (XReg)
     # xreg_mode="timesfm + xreg" is often better for weather physics
     point_fc, quant_fc = model.forecast_with_covariates(
