@@ -7,6 +7,15 @@ from pathlib import Path
 import timesfm
 from timesfm import TimesFm  # Add this line explicitly
 
+# This handles the case where the library isn't installed
+try:
+    import timesfm
+    from timesfm import TimesFm
+except ImportError:
+    print("Error: TimesFM not found. Run: pip install timesfm[xreg]")
+    TimesFm = None # <--- This prevents the NameError later
+    
+
 # Remove the confusing "if TimesFm is None" check later in the code
 
 # Try to import TimesFM 2.5 components
@@ -41,7 +50,13 @@ def prepare_data(file_path):
     return humidity, temperature
 
 def run_forecast():
-    # 1. Properly assign the returned data from prepare_data
+    CSV_FILE = "WeatherData_TG_Hourly_Jan_2026.csv" 
+    
+    # This now works because TimesFm is defined at the top
+    if TimesFm is None:
+        return 
+        
+    # Capture BOTH values returned by the function
     try:
         humidity, temperature = prepare_data(CSV_FILE)
     except FileNotFoundError as e:
