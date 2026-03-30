@@ -38,8 +38,14 @@ def prepare_data(file_path):
     return humidity, temperature
 
 def run_forecast():
-    # 1. Load Data
-    humidity, temperature = prepare_data(CSV_FILE)
+    # Make sure this matches your filename exactly
+    CSV_FILE = "WeatherData_TG_Hourly_Jan_2026.csv" 
+    
+    if TimesFm is None:
+        return # Stop if the library failed to load
+        
+    humidity_df = prepare_data(CSV_FILE)
+    # ... rest of your model execution ...
     
     # Split into context (past) and horizon (future temperature we know)
     # Note: To predict humidity, we use 'known' future temperatures
