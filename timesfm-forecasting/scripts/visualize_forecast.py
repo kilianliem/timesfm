@@ -3,8 +3,8 @@
 Visualize TimesFM forecast results for global temperature anomaly.
 
 Generates a publication-quality figure showing:
-- Historical data (2022-2024)
-- Point forecast (2025)
+- Historical data (2025-01-01-2025-01-31)
+- Point forecast (2025-02)
 - 80% and 90% confidence intervals (fan chart)
 
 Usage:
@@ -22,14 +22,14 @@ import pandas as pd
 
 # Configuration
 EXAMPLE_DIR = Path(__file__).parent
-INPUT_FILE = EXAMPLE_DIR / "temperature_anomaly.csv"
-FORECAST_FILE = EXAMPLE_DIR / "output" / "forecast_output.json"
-OUTPUT_FILE = EXAMPLE_DIR / "output" / "forecast_visualization.png"
+INPUT_FILE = EXAMPLE_DIR / "WeatherData_TG_Hourly_Jan_2026.csv"
+FORECAST_FILE = EXAMPLE_DIR / "output" / "forecast_output_humidity.json"
+OUTPUT_FILE = EXAMPLE_DIR / "output" / "forecast_visualization_humidity.png"
 
 
 def main() -> None:
     # Load historical data
-    df = pd.read_csv(INPUT_FILE, parse_dates=["date"])
+    df = pd.read_csv(INPUT_FILE, parse_dates=["OBSTIME"])
 
     # Load forecast results
     with open(FORECAST_FILE) as f:
@@ -81,7 +81,7 @@ def main() -> None:
 
     # Formatting
     ax.set_xlabel("Date", fontsize=12)
-    ax.set_ylabel("Temperature Anomaly (°C)", fontsize=12)
+    ax.set_ylabel("HUMIDITY FORECAST (%)", fontsize=12)
     ax.set_title(
         "TimesFM Zero-Shot Forecast Example\n36-month Temperature Anomaly → 12-month Forecast",
         fontsize=14,
@@ -90,8 +90,8 @@ def main() -> None:
 
     # Add annotations
     ax.annotate(
-        f"Mean forecast: {forecast['summary']['forecast_mean_c']:.2f}°C\n"
-        f"vs 2024: {forecast['summary']['vs_last_year_mean']:+.2f}°C",
+        f"Mean forecast: {forecast['summary']['forecast_mean_humidty']:.2f}%\n"
+        f"vs 2024: {forecast['summary']['vs_last_month_humicity']:+.2f}%",
         xy=(dates[6], point[6]),
         xytext=(dates[6], point[6] + 0.15),
         fontsize=10,
