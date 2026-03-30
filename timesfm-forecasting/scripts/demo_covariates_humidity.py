@@ -3,6 +3,7 @@ import os
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import timesfm from TimesFM
 from pathlib import Path
 
 # Try to import TimesFM 2.5 components
